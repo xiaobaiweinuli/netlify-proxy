@@ -22,9 +22,10 @@ const PROXY_CONFIG = {
   "/webarchive": "https://web.archive.org",
   "/xzarchive": "https://archive.org",
   // 任意网址
-  "/hexo": "https://hexo-gally.vercel.app", 
-  "/hexo2": "https://hexo-987.pages.dev",
-  "/halo": "https://blog.gally.dpdns.org",
+  "/blinko": "https://
+blinko.xingshuang.xyz", 
+  "/actrive": "https://web-archive-e2i.pages.dev",
+  "/images": "https://cloudflare-imgbed-2ww.pages.dev",
   "/kuma": "https://kuma.gally.dpdns.org",
   "/hf": "https://huggingface.co",
   "/tv": "https://tv.gally.ddns-ip.net",
