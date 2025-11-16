@@ -19,6 +19,8 @@ const PROXY_CONFIG = {
   "/portkey": "https://api.portkey.ai",
   "/fireworks": "https://api.fireworks.ai",
   "/openrouter": "https://openrouter.ai/api",
+  "/webarchive": "https://web.archive.org",
+  "/xzarchive": "https://archive.org"
   // 任意网址
   "/hexo": "https://hexo-gally.vercel.app", 
   "/hexo2": "https://hexo-987.pages.dev",
@@ -26,9 +28,7 @@ const PROXY_CONFIG = {
   "/kuma": "https://kuma.gally.dpdns.org",
   "/hf": "https://huggingface.co",
   "/tv": "https://tv.gally.ddns-ip.net",
-  "/news": "https://newsnow-ahm.pages.dev",
-  "/webarchive": "https://web.archive.org",
-  "/xzarchive": "https://archive.org"
+  "/news": "https://newsnow-ahm.pages.dev"
 };
 
 // 需要修复路径的内容类型
