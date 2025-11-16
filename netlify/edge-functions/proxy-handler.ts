@@ -27,6 +27,8 @@ const PROXY_CONFIG = {
   "/hf": "https://huggingface.co",
   "/tv": "https://tv.gally.ddns-ip.net",
   "/news": "https://newsnow-ahm.pages.dev"
+  "/webarchive": "https://web.archive.org",
+  "/xzarchive": "https://archive.org"
 };
 
 // 需要修复路径的内容类型
