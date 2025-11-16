@@ -26,7 +26,7 @@ const PROXY_CONFIG = {
   "/kuma": "https://kuma.gally.dpdns.org",
   "/hf": "https://huggingface.co",
   "/tv": "https://tv.gally.ddns-ip.net",
-  "/news": "https://newsnow-ahm.pages.dev"
+  "/news": "https://newsnow-ahm.pages.dev",
   "/webarchive": "https://web.archive.org",
   "/xzarchive": "https://archive.org"
 };
