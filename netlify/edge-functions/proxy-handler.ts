@@ -22,8 +22,7 @@ const PROXY_CONFIG = {
   "/webarchive": "https://web.archive.org",
   "/xzarchive": "https://archive.org",
   // 任意网址
-  "/blinko": "https://
-blinko.xingshuang.xyz", 
+  "/blinko": "https://blinko.xingshuang.xyz", 
   "/actrive": "https://web-archive-e2i.pages.dev",
   "/images": "https://cloudflare-imgbed-2ww.pages.dev",
   "/kuma": "https://kuma.gally.dpdns.org",
