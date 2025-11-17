@@ -21,10 +21,10 @@ const PROXY_CONFIG = {
   "/openrouter": "https://openrouter.ai/api",
   "/webarchive": "https://web.archive.org",
   "/xzarchive": "https://archive.org",
-  // 任意网址
   "/blinko": "https://blinko.xingshuang.xyz", 
   "/actrive": "https://web-archive-e2i.pages.dev",
   "/images": "https://cloudflare-imgbed-2ww.pages.dev",
+  // 任意网址
   "/kuma": "https://kuma.gally.dpdns.org",
   "/hf": "https://huggingface.co",
   "/tv": "https://tv.gally.ddns-ip.net",
