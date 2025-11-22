@@ -1,0 +1,7 @@
+[build]
+  publish = "."
+  command = "echo 'No build needed'"
+
+[[edge_functions]]
+  path = "/*"
+  function = "proxy"

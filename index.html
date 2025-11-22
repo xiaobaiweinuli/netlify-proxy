@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>加载中...</title>
+    <link rel="icon" type="image/x-icon" href="/favicon.ico">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            overflow: hidden;
+        }
+        
+        #loading-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+            transition: opacity 0.5s;
+        }
+        
+        .loader-container {
+            position: relative;
+            width: 120px;
+            height: 120px;
+        }
+        
+        .favicon {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+            z-index: 2;
+            overflow: hidden;
+        }
+        
+        .favicon img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+        }
+        
+        .spinner {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            border: 4px solid rgba(255, 255, 255, 0.2);
+            border-top-color: #fff;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        .status {
+            position: absolute;
+            top: 140px;
+            left: 50%;
+            transform: translateX(-50%);
+            color: white;
+            font-size: 16px;
+            white-space: nowrap;
+        }
+        
+        .site-info {
+            position: absolute;
+            top: 170px;
+            left: 50%;
+            transform: translateX(-50%);
+            color: rgba(255, 255, 255, 0.8);
+            font-size: 14px;
+            white-space: nowrap;
+        }
+    </style>
+</head>
+<body>
+    <div id="loading-screen">
+        <div class="loader-container">
+            <div class="favicon">
+                <img id="favicon-img" src="/favicon.ico" alt="Loading">
+            </div>
+            <div class="spinner"></div>
+            <div class="status" id="status">正在检测最快站点...</div>
+            <div class="site-info" id="site-info"></div>
+        </div>
+    </div>
+
+    <script>
+        const SESSION_KEY = 'selected_site_session';
+        
+        // 配置：是否每次刷新都重新测速
+        // true = 每次刷新都测速
+        // false = 同一会话内只测速一次
+        const ALWAYS_TEST_SPEED = true;
+
+        async function getSites() {
+            const response = await fetch('/__api__/sites');
+            return response.json();
+        }
+
+        async function testSiteSpeed(site, index) {
+            try {
+                const startTime = performance.now();
+                const response = await fetch(`/__api__/health/${index}`);
+                const data = await response.json();
+                const endTime = performance.now();
+                
+                return {
+                    index,
+                    name: site.name,
+                    url: site.url,
+                    latency: data.ok ? (endTime - startTime) : Infinity,
+                    ok: data.ok
+                };
+            } catch (error) {
+                return {
+                    index,
+                    name: site.name,
+                    url: site.url,
+                    latency: Infinity,
+                    ok: false
+                };
+            }
+        }
+
+        async function findFastestSite() {
+            const sites = await getSites();
+            document.getElementById('site-info').textContent = `检测 ${sites.length} 个站点...`;
+            
+            // 并发测速所有站点
+            const results = await Promise.all(
+                sites.map((site, index) => testSiteSpeed(site, index))
+            );
+
+            // 过滤出可用的站点
+            const availableSites = results.filter(r => r.ok && r.latency !== Infinity);
+            
+            if (availableSites.length === 0) {
+                throw new Error('所有站点都不可用');
+            }
+
+            // 选择最快的站点
+            const fastest = availableSites.reduce((prev, current) => 
+                current.latency < prev.latency ? current : prev
+            );
+
+            console.log(`最快站点: ${fastest.name} (${Math.round(fastest.latency)}ms)`);
+            console.log('所有站点测速结果:', results.map(r => 
+                `${r.name}: ${r.ok ? Math.round(r.latency) + 'ms' : '不可用'}`
+            ).join(', '));
+            
+            document.getElementById('site-info').textContent = 
+                `已选择: ${fastest.name} (${Math.round(fastest.latency)}ms)`;
+            
+            // 保存到 sessionStorage（仅当前会话有效）
+            const sessionData = {
+                index: fastest.index,
+                name: fastest.name,
+                availableSites: availableSites.map(s => s.index) // 保存所有可用站点作为备选
+            };
+            sessionStorage.setItem(SESSION_KEY, JSON.stringify(sessionData));
+            
+            // 设置 cookie（会话级别，关闭浏览器后失效）
+            document.cookie = `selected_site=${fastest.index}; path=/; SameSite=Lax`;
+            document.cookie = `speed_test_done=true; path=/; SameSite=Lax`;
+            
+            return fastest.index;
+        }
+
+        async function init() {
+            try {
+                // 如果配置为每次都测速，清除缓存
+                if (ALWAYS_TEST_SPEED) {
+                    sessionStorage.removeItem(SESSION_KEY);
+                    // 清除 cookie
+                    document.cookie = 'selected_site=; path=/; max-age=0';
+                    document.cookie = 'speed_test_done=; path=/; max-age=0';
+                }
+                
+                // 检查当前会话是否已经测速
+                const sessionData = sessionStorage.getItem(SESSION_KEY);
+                
+                if (sessionData && !ALWAYS_TEST_SPEED) {
+                    // 当前会话已测速，直接使用
+                    const data = JSON.parse(sessionData);
+                    console.log(`使用会话缓存: ${data.name}`);
+                    document.getElementById('status').textContent = '正在加载...';
+                    document.getElementById('site-info').textContent = `使用: ${data.name}`;
+                    
+                    // 设置 cookie
+                    document.cookie = `selected_site=${data.index}; path=/; SameSite=Lax`;
+                    document.cookie = `speed_test_done=true; path=/; SameSite=Lax`;
+                    
+                    // 快速跳转
+                    await new Promise(resolve => setTimeout(resolve, 300));
+                } else {
+                    // 首次访问，进行测速
+                    document.getElementById('status').textContent = '正在检测最快站点...';
+                    await findFastestSite();
+                    
+                    // 延迟一下让用户看到选择结果
+                    await new Promise(resolve => setTimeout(resolve, 800));
+                }
+                
+                // 设置一个临时 cookie 标记本次测速已完成
+                document.cookie = `just_tested=true; path=/; max-age=2; SameSite=Lax`;
+                
+                // 跳转到博客首页
+                window.location.replace('/');
+                
+            } catch (error) {
+                console.error('测速失败:', error);
+                document.getElementById('status').textContent = '加载失败: ' + error.message;
+                document.getElementById('site-info').textContent = '请刷新页面重试';
+            }
+        }
+
+        init();
+    </script>
+</body>
+</html>

@@ -1,0 +1,6 @@
+# Local Netlify folder
+.netlify
+
+# Environment variables (本地开发用)
+..vscode
+.env.local
